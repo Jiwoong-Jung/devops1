@@ -36,19 +36,19 @@ jobs:
 
     - name: Add known_hosts
       run: |
-        echo "3.38.246.161 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOv6VrKy37/jwgpn2LLby5EEg34Af2pSgBQaFoRGIPb7" >> ~/.ssh/known_hosts
+        echo "13.125.64.96 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOv6VrKy37/jwgpn2LLby5EEg34Af2pSgBQaFoRGIPb7" >> ~/.ssh/known_hosts
 
     - name: 기존프로세스 종료 
       run: |
         kill -9 $(ps -ef | grep devops | grep -v grep | head -n 1 | awk '{print $2}') || true
 
     - name: Deploy to Server
-      run: scp -i ~/.ssh/id_rsa -r build/libs/*.jar ubuntu@3.38.246.161:~/app/
+      run: scp -i ~/.ssh/id_rsa -r build/libs/*.jar ubuntu@13.125.64.96:~/app/
 
 
     - name: Run SSH commands
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@3.38.246.161 << 'EOF'
+        ssh -i ~/.ssh/id_rsa ubuntu@13.125.64.96 << 'EOF'
           pkill -f 'java -jar' || true
           nohup java -jar ~/app/devops_step0-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &
         EOF

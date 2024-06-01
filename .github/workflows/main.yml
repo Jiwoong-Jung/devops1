@@ -1,0 +1,54 @@
+name: Deploy to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 푸시될 때 트리거
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps: 
+    # 코드 체크아웃
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # JDK 11 설정
+    - name: Set up JDK 17
+      uses: actions/setup-java@v1
+      with:
+        java-version: '17'
+
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Set SSH key permissions
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+    - name: Add known_hosts
+      run: |
+        echo "3.38.246.161 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOv6VrKy37/jwgpn2LLby5EEg34Af2pSgBQaFoRGIPb7" >> ~/.ssh/known_hosts
+
+    - name: 기존프로세스 종료 
+      run: |
+        kill -9 $(ps -ef | grep devops | grep -v grep | head -n 1 | awk '{print $2}') || true
+
+    - name: Deploy to Server
+      run: scp -i ~/.ssh/id_rsa -r build/libs/*.jar ubuntu@3.38.246.161:~/app/
+
+
+    - name: Run SSH commands
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@3.38.246.161 << 'EOF'
+          pkill -f 'java -jar' || true
+          nohup java -jar ~/app/devops_step0-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &
+        EOF

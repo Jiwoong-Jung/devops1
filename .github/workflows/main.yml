@@ -41,7 +41,7 @@ jobs:
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     # 5. Docker Hub 이미지 푸시
     - name: docker Hub push
